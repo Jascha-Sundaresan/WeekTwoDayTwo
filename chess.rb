@@ -1,13 +1,9 @@
-require 'debugger'
+
 require 'colorize'
-
-
-load './piece.rb'
-load './pawn.rb'
-load './stepping_pieces.rb'
-load './sliding_pieces.rb'
+class MoveError < StandardError; end
 
 class Chessboard
+  
   attr_accessor :board
   
   def initialize
@@ -43,10 +39,10 @@ class Chessboard
     end
     
     def display_board
-      display_string = "   0  1  2  3  4  5  6  7 \n"
+      display_string = "   a  b  c  d  e  f  g  h \n"
       alternate_color = true
       @board.each_with_index do |rows, row_index|
-        display_string << "#{row_index} "
+        display_string << "#{(row_index-8).abs} "
         rows.each_with_index do |space, col_index|
           if alternate_color
             display_string << " ".on_black if space.nil?
@@ -107,9 +103,9 @@ class Chessboard
   
   def move(start_pos, end_pos)
     piece_to_move = self[start_pos]
-    raise StandardError.new("No piece there!") if piece_to_move.nil?
+    raise MoveError.new("No piece there!") if piece_to_move.nil?
     unless piece_to_move.moves.include?(end_pos)
-      raise StandardError.new("Can't move there!")   
+      raise MoveError.new("Can't move there!")   
     end
     move!(start_pos, end_pos)
     
@@ -144,15 +140,3 @@ class Chessboard
   end
   
 end
-
-
-
-b = Chessboard.new
-b.display_board
-b.move([6,5], [5,5])
-b.move([1,4], [3,4])
-b.move([6,6], [4,6])
-b.move([0,3], [4,7])
-
-b.display_board
-p b.checkmate?("w")
