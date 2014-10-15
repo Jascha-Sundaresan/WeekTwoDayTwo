@@ -1,8 +1,10 @@
-load './piece.rb'
-load './pawn.rb'
-load './stepping_pieces.rb'
-load './sliding_pieces.rb'
-load './chess.rb'
+#!/usr/bin/env ruby
+
+require './piece'
+require './pawn'
+require './stepping_pieces'
+require './sliding_pieces'
+require './chess'
 
 class ChessGame
   
@@ -18,7 +20,7 @@ class ChessGame
       @board.display_board
       begin
         move = current_player.get_move
-        @board.move(move[0], move[1])
+        @board.move(move[0], move[1], current_player.color)
       rescue MoveError => e
         puts e
         retry
@@ -84,30 +86,17 @@ class HumanPlayer
   end
   
   def wellformed?(pos)
+    return false unless pos.length == 2
     return false unless pos[0].between?('a', 'h')
     return false unless pos[1].between?('1', '8')
     true
   end
-  
-  # def play_turn
-#     get_move
-#     begin
-#         p "What is the location of the piece you would like to move? ex. a1"
-#         start_pos = gets.chomp
-#         raise InputError.new("That's not what I asked for....") unless wellformed?(start_pos)
-#       rescue InputError => error
-#         puts error
-#       retry
-#     end
-#
-#     begin
-#       p "Where would you like to go? g7"
-#       end_pos = gets.chomp
-#       raise InputError.new("That's not what I asked for.....") unless wellformed?(end_pos)
-#     rescue InputError => error
-#       puts error
-#       retry
-#     end
-#
-#   end
+
 end
+
+if __FILE__ == $PROGRAM_NAME
+  
+  ChessGame.new.play_game
+
+end
+  
