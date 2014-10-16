@@ -27,6 +27,10 @@ class Piece
     board_dup.in_check?(self.color)
   end
   
+  def occupied?(position)
+    !!@board[position]
+  end
+  
   private
   
   def update_position(position, offset)
@@ -39,9 +43,7 @@ class Piece
      !on_board?(position) || occupied?(position)
   end
   
-  def occupied?(position)
-    !!@board[position]
-  end
+  
   
   def on_board?(position)
     position.first.between?(0, 7) && position.last.between?(0, 7)

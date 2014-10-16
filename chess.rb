@@ -105,8 +105,18 @@ class Chessboard
     unless piece_to_move.moves.include?(end_pos)
       raise MoveError.new("Can't move there!")   
     end
+    
+    if piece_to_move.class == Rook || piece_to_move.class == King
+      piece_to_move.moved = true
+    end
+      
     move!(start_pos, end_pos)
     
+    if piece_to_move.class == Pawn && 
+          (piece_to_move.position[0] == 0 ||  piece_to_move.position[0] == 7)
+      promote_pawn(piece_to_move)
+    end
+      
   end
   
   def move!(start_pos, end_pos)
@@ -114,6 +124,27 @@ class Chessboard
     self[start_pos] = nil
     piece_to_move.position = end_pos
     self[end_pos] = piece_to_move
+  end
+  
+  def promote_pawn(piece_to_upgrade)
+    p "Which type of piece would you like? Queen (q), Knight (k), Bishop (b), Rook(r)"
+    begin
+      piece = gets.chomp
+      raise InputError.new("q k b or r") unless ["q", "k", "b", "r"].include?(piece)
+    rescue InputError => e
+      puts e
+      retry
+    end
+    case piece
+    when 'q'
+      self[piece_to_upgrade.position] = Queen.new(self, piece_to_upgrade.position, piece_to_upgrade.color)
+    when 'k'
+      self[piece_to_upgrade.position] = Knight.new(self, piece_to_upgrade.position, piece_to_upgrade.color)
+    when 'b'
+      self[piece_to_upgrade.position] = Bishop.new(self, piece_to_upgrade.position, piece_to_upgrade.color)
+    when 'r'
+      self[piece_to_upgrade.position] = Rook.new(self, piece_to_upgrade.position, piece_to_upgrade.color)
+    end
   end
   
   def dup
@@ -134,4 +165,95 @@ class Chessboard
     pieces.all? {|piece| piece.valid_moves.empty? }
   end
   
+  def castle(type, color)
+    if type == "0-0"
+      kingside_castle(color)
+    else
+      queenside_castle(color)
+    end
+  end
+  
+  def kingside_castle(color)
+    raise MoveError.new("Castle can't move out of check") if in_check?(color)
+    raise MoveError.new("Can't castle. Pieces in between king and rook") if pieces_in_way?(color, :kingside)
+    #raise MoveError.new("Castle can't move over check") if over_check?(color, :kingside)
+    raise MoveError.new("Can't castle. King has moved") unless king_unmoved?(color)
+    raise MoveError.new("Can't castle. Rook has moved") unless rook_unmoved?(color, :kingside)
+    
+    if color == 'w'
+      move!([7, 4], [7, 6])
+      self[[7, 6]].moved = true
+      move!([7, 7], [7, 5])
+      self[[7, 5]].moved = true
+    else
+      move!([0, 4], [0, 6])
+      self[[0, 6]].moved = true
+      move!([0, 7], [0, 5])
+      self[[0, 5]].moved = true
+    end
+  end
+  
+  def queenside_castle(color)
+    raise MoveError.new("Castle can't move out of check") if in_check?(color)
+    raise MoveError.new("Can't castle. Pieces in between king and rook") if pieces_in_way?(color, :queenside)
+    #sraise MoveError.new("Castle can't move over check") if over_check?(color, :queenside)
+    raise MoveError.new("Can't castle. King has moved") unless king_unmoved?(color)
+    raise MoveError.new("Can't castle. Rook has moved") unless rook_unmoved?(color, :queenside)
+    if color == 'w'
+      move!([7, 4], [7, 2])
+      self[[7, 2]].moved = true
+      move!([7, 0], [7, 3])
+      self[[7, 3]].moved = true
+    else
+      move!([0, 4], [0, 2])
+      self[[0, 2]].moved = true
+      move!([0, 0], [0, 3])
+      self[[0, 3]].moved = true
+    end
+  end
+  
+  def king_unmoved?(color)
+    if color == "b"
+      self[[0,4]].class == King && !self[[0, 4]].moved
+    else
+      self[[7,4]].class == King && !self[[7, 4]].moved
+    end
+  end
+  
+  def rook_unmoved?(color, side)
+    if color == "b" && side == :kingside
+      self[[0,7]].class == Rook && !self[[0, 7]].moved
+    elsif  color == "b" && side == :queenside
+      self[[0,0]].class == Rook && !self[[0, 0]].moved
+    elsif color == "w" && side == :kingside
+      self[[7,7]].class == Rook && !self[[7, 7]].moved
+    elsif  color == "w" && side == :queenside
+      self[[7,0]].class == Rook && !self[[7, 0]].moved
+    end
+  end
+  
+  def pieces_in_way?(color, side)
+    if color == "b" && side == :kingside
+      places_to_check = [[0, 6],[0, 5]]
+    elsif  color == "b" && side == :queenside
+      places_to_check = [[0, 1], [0, 2], [0, 3]]
+    elsif color == "w" && side == :kingside
+      places_to_check = [[7, 6], [7,5]]
+    elsif color == "w" && side == :queenside
+      places_to_check = [[7, 1], [7, 2], [7, 3]]
+    end
+    
+    !places_to_check.all? {|place| vacant?(place)}
+  end
+  
+  def vacant?(place)
+    p place
+    self[place].class == NilClass
+  end
+  
+  
+  
+  # def over_check?(color, side)
+#   end
+    
 end

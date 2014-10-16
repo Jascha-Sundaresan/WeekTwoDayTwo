@@ -18,6 +18,13 @@ end
 
 class King < SteppingPiece
 
+  attr_accessor :moved
+  
+  def initialize(board, position, color)
+    super(board, position, color)
+    moved = false
+  end
+  
   def move_dirs
     [[1,1], [-1, 1], [-1, -1], [1, -1], [1, 0], [0, 1], [-1, 0], [0, -1]]
   end

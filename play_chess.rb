@@ -20,7 +20,11 @@ class ChessGame
       @board.display_board
       begin
         move = current_player.get_move
-        @board.move(move[0], move[1], current_player.color)
+        if move == "0-0" || move == "0-0-0"
+          @board.castle(move, current_player.color)
+        else
+          @board.move(move[0], move[1], current_player.color)
+        end
       rescue MoveError => e
         puts e
         retry
@@ -74,9 +78,14 @@ class HumanPlayer
       retry  
     end
     
-    start_coord = [TRANSLATION_HASH_COLS[start_pos[1]], TRANSLATION_HASH_ROWS[start_pos[0]]]
-    end_coord = [TRANSLATION_HASH_COLS[end_pos[1]], TRANSLATION_HASH_ROWS[end_pos[0]]]
-    [start_coord, end_coord]
+    if start_pos == "0-0" || start_pos == "0-0-0"
+      start_pos
+    else
+      start_coord = [TRANSLATION_HASH_COLS[start_pos[1]], TRANSLATION_HASH_ROWS[start_pos[0]]]
+      end_coord = [TRANSLATION_HASH_COLS[end_pos[1]], TRANSLATION_HASH_ROWS[end_pos[0]]]
+      [start_coord, end_coord]
+    end
+    
   end
   
   def gets_input
@@ -86,6 +95,7 @@ class HumanPlayer
   end
   
   def wellformed?(pos)
+    return true if pos == "0-0" || pos == "0-0-0"
     return false unless pos.length == 2
     return false unless pos[0].between?('a', 'h')
     return false unless pos[1].between?('1', '8')

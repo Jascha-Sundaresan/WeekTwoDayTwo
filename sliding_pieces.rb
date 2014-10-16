@@ -19,6 +19,14 @@ class SlidingPiece < Piece
 end
 
 class Rook < SlidingPiece
+  
+  attr_accessor :moved
+  
+  def initialize(board, position, color)
+    super(board, position, color)
+    moved = false
+  end
+  
   def move_dirs
     ORTHOGONALS
   end
